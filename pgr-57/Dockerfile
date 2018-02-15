@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		pwgen \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A
+RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 430BDF5C56E7C94E848EE60C1C4CBDCDCD2EFD2A ;\
+    apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 9334A25F8507EFA5
 
 RUN echo 'deb https://repo.percona.com/apt jessie main' > /etc/apt/sources.list.d/percona.list
 
@@ -15,14 +16,14 @@ RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
             -c "Default Application User" mysql
 
 ENV PERCONA_MAJOR 5.7
-ENV PERCONA_VERSION 5.7.17-11-1.jessie
+ENV PERCONA_VERSION 5.7.20-19-1.jessie
 
 
 # the "/var/lib/mysql" stuff here is because the mysql-server postinst doesn't have an explicit way to disable the mysql_install_db codepath besides having a database already "configured" (ie, stuff in /var/lib/mysql/mysql)
 # also, we set debconf keys to make APT a little quieter
 RUN { \
-		echo percona-server-server-$PERCONA_MAJOR percona-server-server/root_password password 'unused'; \
-		echo percona-server-server-$PERCONA_MAJOR percona-server-server/root_password_again password 'unused'; \
+		echo percona-server-server-$PERCONA_MAJOR percona-server-server-$PERCONA_MAJOR/root-pass password ''; \
+		echo percona-server-server-$PERCONA_MAJOR percona-server-server-$PERCONA_MAJOR/re-root-pass password ''; \
 	} | debconf-set-selections \
 	&& apt-get update \
 	&& apt-get install -y --force-yes percona-server-server-$PERCONA_MAJOR=$PERCONA_VERSION \
@@ -55,7 +56,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 LABEL vendor=Percona
 LABEL com.percona.package="Percona Server Group Replication"
-LABEL com.percona.version="5.7.17"
+LABEL com.percona.version="5.7.20"
 
 EXPOSE 3306
 
